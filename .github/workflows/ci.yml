@@ -69,10 +69,14 @@ jobs:
             hello # should still be available because we didn't clear the env
             tiny --version
 
+            touch foo
+
       # check that we didn't add python to the github actions env:
       - name: 'Did not update environment'
         run: |
           command -v tiny && exit 3 || :
+
+          cat foo # check that the script actually ran
 
       - name: 'Run Script without Host Env'
         uses: ./.github/workflows/matrix-expansion-helper
