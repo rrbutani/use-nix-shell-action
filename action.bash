@@ -167,6 +167,55 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
     profileRaw="$(mktemp --suffix=-profile.rc)"
     nixCmd "${cmd_args[@]}" > "$profileRaw"
 
+    # Run in a subshell with it's environment cleared so we can tell what
+    # actually came from the nix shell:
+    env -i "$(which bash)" <<-EOF
+        set -eo pipefail
+        shopt -s lastpipe
+
+		# Within this subshell we can't assume anything about PATH so we can
+		# only use bash built-ins and things we explicitly define.
+		rm() { "$(which rm)" "\$@"; } # nix-direnv wants this
+
+		source "${NIX_DIRENV_PATH}"
+		NDEBUG="${NDEBUG-""}" source "$(dirname "$0")/util.bash"
+
+		_nix_import_env "${profileRaw}" # from nix-direnv
+
+        declare -a _env_vars=()
+		compgen -v | while read -r name; do
+		    if [[ "\$name" == "SHLVL" || "\$name" == "PWD" ]]; then continue; fi
+
+		    # Skip variables that aren't exported:
+		    debug "[attrs] \${name}: \${!name@a}"
+		    if ! [[ "\${!name@a}" == *x* ]]; then
+		        debug "skipping env var '\$name'"
+		        continue
+		    fi
+
+		    if [[ "\$name" == "PATH" ]]; then
+		        continue # we will handle PATH separately, see below
+		    fi
+		    _env_vars+=("\$name")
+
+		    GITHUB_ENV="${GITHUB_ENV_FILE}" echo=true export_var "\$name"
+		done
+		echo "exported \${#_env_vars[@]} variables: \${_env_vars[*]@Q}"
+		notice "exported \${#_env_vars[@]} variables: \${_env_vars[*]@Q}"
+
+		if [[ "${INPUT_PRESERVE_DEFAULT_PATH}" == "false" ]]; then
+		    echo 'PATH=""' >> "${GITHUB_ENV_FILE}"
+		    debug "cleared host path!"
+		fi
+
+		declare -a _path_segs=()
+		echo "\${PATH//:/\$'\n'}" | while read -r path_seg; do
+		    _path_segs+=("\$path_seg")
+		    echo "\$path_seg" >> "${GITHUB_PATH_FILE}"
+		done
+		notice "added \${#_path_segs[@]} elements to PATH: \${_path_segs[*]@Q}"
+
+		EOF
 
     echo "::endgroup::"
 fi
