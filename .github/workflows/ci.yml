@@ -1,127 +1,57 @@
 name: "Test"
 on: [push]
 jobs:
-  example:
+  test:
+    strategy:
+      matrix:
+        shellSource: [packages, flakes, file, devShell]
+        runs-on: [ubuntu-latest, macos-latest]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      # - uses: cachix/install-nix-action@v18
-      #   with:
-      #     nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Print env, before
-        run: env
-      - run: export FOO=hello
-      - run: FOO_unexported=89
-      - run: bash -c "export FOO2=hello"
-      - run: env
+      # Don't install `nix` ourselves to ensure that the action does.
 
-      - run: echo "FOO3=hello" >> $GITHUB_ENV
-      - run: env
+      # Check that we've got the default Actions Runner path:
+      - run: echo $PATH && rustc --version
 
-      # Test clear:
-      - run: echo "FOO4=hello" > $GITHUB_ENV
-      # NOTE: still appends!
+      # Map to the right shell source:
+      - uses: ./
+        if: ${{ matrix.shellSource == "packages" }}
+        with.packages: hello
+        with.preserveDefaultPath: false
+      - uses: ./
+        if: ${{ matrix.shellSource == "flakes" }}
+        with.flakes: nixpkgs#hello
+        with.preserveDefaultPath: false
+      - uses: ./
+        if: ${{ matrix.shellSource == "file" }}
+        with.file: test/shell.nix
+        with.preserveDefaultPath: false
+      - uses: ./
+        if: ${{ matrix.shellSource == "devShell" }}
+        with.devShell: test
+        with.preserveDefaultPath: false
 
-      # let's try overriding:
-      - run: echo "FOO3=blue" >> $GITHUB_ENV
-      - run: env
+      # Test that the PATH has been cleared now:
+      - run: |
+          echo $PATH
+          command -v rustc && exit 1 || :
 
-      # Test the limits of what GITHUB_ENV will allow:
-      - name: spaces and quotes
-        run: echo "FOO5=hey there" >> $GITHUB_ENV
-      - run: echo "FOO6='hey there'" >> $GITHUB_ENV
-      - run: echo 'FOO6b="hey there"' >> $GITHUB_ENV
-      - run: echo "FOO7='\n\n\nyo'" >> $GITHUB_ENV
-      - run: env
+      # Test that `hello` is on the path:
+      - run: hello
 
-      - name: declare style and arbitrary
-        # run: echo "echo yo" >> $GITHUB_ENV
-        run: FOO8=yo; declare -p FOO8 >> $GITHUB_ENV
-      - run: FOO9=yo; echo "FOO=${FOO9@Q}" >> $GITHUB_ENV
-      - run: env
-
-      - name: modify path via github_env
-        # this is allowed and does take effect...
-        run: echo "PATH=${PATH@Q}" >> $GITHUB_ENV
-
-        # let's test ordering:
-      - run: echo "foo" >> $GITHUB_PATH
-      - run: echo "foo:bar:baz:quzz" >> $GITHUB_PATH
-      - run: echo $PATH
-       # answer: reverse order; last thing appended get priority, as we'd hope
-
-       # And now let's see if the GITHUB_ENV version of the PATH overrides:
-      - run: echo "PATH=three:$PATH" >> $GITHUB_ENV
-      - run: echo $PATH
-       # answer: $GITHUB_PATH is prepended _after_ PATH is restored from GITHUB_ENV
-       #
-       # this means that we're probably good (for now); we don't *have* to handle
-       # PATH in a special way
-       #
-       # though we eventually should since otherwise other actions appending
-       # things to $GITHUB_PATH will take priority over what the nix shell
-       # exports (even if `use-nix-shell-action` comes after those actions)
-       # which is probably unintuitive for users
-
-       # Can we clear the default path entries though?
-      - run: echo "PATH=''" >> $GITHUB_ENV
-      - run: echo $PATH
-
-      - name: escapes and spaces
-        run: |
-          # set -x
-          foo=$'pweofj\noiwejfip\n\nioihoiuoiuigftj˙©†¥∆ˆø™´•˙ƒˆ∂˙…™ˆƒ¨∆\n\n´ˆøƒ∆\n\n"edfijw"'
-          echo "foo=${foo@Q}" >> $GITHUB_ENV
-          echo "foo2='\n\n\n'" >> $GITHUB_ENV
-          echo 'foo3="\""' >> $GITHUB_ENV
-          # echo -e "foo4='\n\n\n'" >> $GITHUB_ENV
-          # echo -e "foo5=\"\n\n\n\"" >> $GITHUB_ENV
-          echo -e "foo5=\"\\\n\\\n\\\n\"" >> $GITHUB_ENV
-          var() {
-            echo "$1<<__EOV__" >> $GITHUB_ENV
-            echo "${!1}" >> $GITHUB_ENV
-            echo "__EOV__" >> $GITHUB_ENV
-          }
-
-          foo6="
-
-
-          "
-          var foo6
-          var foo
-          var PATH
-
-          cat <<'EOF' >> $GITHUB_ENV
-          P=H oij oijw  foweij owifej=:jfoi34hf898us8cd7[p98uv983480(*&^%$#2#$%^&*)] $ $ $ ' '"""""\\\ \ \ \t \t \t \t
-          EOF
-
-          echo "------------------------------"
-          cat $GITHUB_ENV
-          echo "------------------------------"
-
-      - run: env
-
-      - name: export testcase vars
-        run: |
-          source test/vars.bash
-          source util.bash
-
-          export_testcase_vars
-      - name: check testcase vars
+      # `devShell` and `file` sources also exported the test case vars; check
+      # that the vars roundtripped correctly in these shells:
+      - if: ${{ matrix.shellSource == "devShell" }} || ${{ matrix.shellSource == "file" }}
         run: |
           source util.bash
-
           check_testcases
 
-      - run: ls
-      - uses: ./
-        with:
-          devShell: .#default # default
-      - name: Print env, after
-        run: env
-      - name: Run hello
-        run: hello
-      - name: Print env var
-        run: echo $SOME_ENV_VAR
+          # Check that modifications in `shellHook` take effect:
+          echo $PATH | grep "foo" || exit 3
 
+# Lint
+# Test: env-vars on { flakes, devShell, packages, file } + run script
+#  + test with `preserveDefaultPath` that checks that, like, rustc isn't on the path anymore
+# matrix: { macOS, ubuntu }
