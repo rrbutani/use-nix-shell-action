@@ -10,6 +10,7 @@ inputs:
       into your GitHub Actions job's environment.
     required: false
     default: true
+    type: boolean
   preserveDefaultPath:
     description: >
       Boolean controlling whether the shell's environment *overrides* `$PATH` in
@@ -17,6 +18,7 @@ inputs:
       `$GITHUB_PATH` (i.e. by other actions) will be preserved regardless.
     required: false
     default: true
+    type: boolean
 
   # Shell specification options; set 0 or 1 of these:
   packages:
@@ -40,32 +42,30 @@ inputs:
     description: 'Path to a file (i.e. shell.nix) describing the shell.'
     required: false
 
+  # Script options:
+  script:
+    description: 'A script to run under the shell specified.'
+    required: false
+  interpreter:
+    description: 'The interpreter under which to run `script`.'
+    required: false
+    default: "bash"
+  clearEnvForScript:
+    description: >
+      Boolean specifying whether to preserve existing env vars when running the
+      provided script.
+
+      Note that this does not influence the environment that's exported and
+      cannot be used to provide a "pure" shell for future steps in your action.
+    required: false
+    default: true
+    type: boolean
 
   extraNixOptions:
     description: >
       Extra options to pass to the nix invocation used to construct the shell.
     required: false
     default: ""
-
-# outputs:
-#   env:
-#         value: ${{ steps.random-number-generator.outputs.random-number }}
-# TODO ^
-
-# warn if nix is not installed; go install it
-
-# warn if `pure` is enabled when a script is not provided
-
-# not providing interpreter because the point of running a script is to influence
-# the env that's exported; can't do this from within another process..
-# so for now, fixed on bash
-#
-# actually there's no point in providing a script either
-#
-# pure also doesn't make much sense; most of our shell options use
-# `print-dev-env` which doesn't actually run anything or construct an
-# environment so we can't really even "run" a script let alone run a script in
-# a "pure" shell
 
 runs:
   using: "composite"
@@ -127,5 +127,9 @@ runs:
         INPUT_FLAKES: ${{ inputs.flakes }}
         INPUT_DEVSHELL: ${{ inputs.devShell }}
         INPUT_FILE: ${{ inputs.file }}
+
+        INPUT_SCRIPT: ${{ inputs.script }}
+        INPUT_INTERPRETER: ${{ inputs.interpreter }}
+        INPUT_CLEAR_ENV_FOR_SCRIPT: ${{ inputs.clearEnvForScript }}
 
         INPUT_EXTRA_NIX_OPTIONS: ${{ inputs.extraNixOptions }}
