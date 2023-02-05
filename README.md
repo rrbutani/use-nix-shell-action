@@ -77,6 +77,8 @@ These options describe the shell that `use-nix-shell-action` should use.
   - `exportEnv`: Boolean specifying whether `use-nix-shell-action` should export the shell given to your environment.
     + defaults to <kbd>`true`</kbd>
   - `preserveDefaultPath`: Boolean controlling whether the shell's environment *overrides* `$PATH` in the job (`false`) or appends to it (`true`).
+    > **Warning**
+    > Be careful with this option; if your shell doesn't include `bash`, `node`, `docker`, etc. those tools will not be on the `PATH` after this step; this can break other actions.
     + note: things added to `$GITHUB_PATH` (i.e. by other actions) will be preserved regardless
     + defaults to <kbd>`true`</kbd>
 
