@@ -121,6 +121,52 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
     # shellcheck source=vendored/nix-direnv.envrc
     source "${NIX_DIRENV_PATH}" # TODO: in lint specify loc
 
+    declare -a cmd_args=()
+    case ${INPUT_SOURCE/INPUT_/} in
+        PACKAGES) # `nix print-dev-env` with `mkShell` expr
+            notice "nix shell from packages: ${INPUT_PACKAGES_LIST[*]@Q}"
+
+            # we don't sanitize `INPUT_PACKAGES_LIST` so arbitrary nix
+            # expressions can sneak in but I think this is okay?
+            cmd_args=(
+                print-dev-env
+                --impure
+                --expr "with (import <nixpkgs> {}); mkShell { packages = [ ${INPUT_PACKAGES_LIST[*]} ]; }"
+                "${INPUT_EXTRA_NIX_OPTIONS[@]}"
+            )
+            ;;
+        FLAKES) # `nix shell` + `env`
+            notice "nix shell from flakes: ${INPUT_FLAKES_LIST[*]@Q}"
+            cmd_args=(
+                shell
+                "${INPUT_FLAKES_LIST[@]}"
+                --ignore-environment
+                "${INPUT_EXTRA_NIX_OPTIONS[@]}"
+                --command "$(which bash)" -c "$(which env)"
+            )
+            ;;
+        DEVSHELL) # `nix print-dev-env`
+            notice "nix shell from devShell: ${INPUT_DEVSHELL}"
+            cmd_args=(
+                print-dev-env
+                "${INPUT_DEVSHELL}"
+                "${INPUT_EXTRA_NIX_OPTIONS[@]}"
+            )
+            ;;
+        FILE) # `nix print-dev-env`
+            notice "nix shell from file: ${INPUT_FILE}"
+            cmd_args=(
+                print-dev-env
+                --file "${INPUT_FILE}"
+                "${INPUT_EXTRA_NIX_OPTIONS[@]}"
+            )
+            ;;
+        *) error unreachable
+    esac
+
+    profileRaw="$(mktemp --suffix=-profile.rc)"
+    nixCmd "${cmd_args[@]}" > "$profileRaw"
+
 
     echo "::endgroup::"
 fi
