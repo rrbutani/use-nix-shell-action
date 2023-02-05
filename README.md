@@ -64,6 +64,14 @@ These options describe the shell that `use-nix-shell-action` should use.
     + note: things added to `$GITHUB_PATH` (i.e. by other actions) will be preserved regardless
     + defaults to <kbd>`true`</kbd>
 
+### Script Options
+
+  <!-- + TODO: I don't think this will actually work?
+  + TODO: what does GITHUB_ENV actually let us do?
+  + TODO: lower to `-i` if using `nix develop`
+  + If you're looking for actual purity probably use `script` -->
+
+
 
 ### Other options
 

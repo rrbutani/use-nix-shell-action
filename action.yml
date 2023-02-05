@@ -53,6 +53,19 @@ inputs:
 
 # warn if nix is not installed; go install it
 
+# warn if `pure` is enabled when a script is not provided
+
+# not providing interpreter because the point of running a script is to influence
+# the env that's exported; can't do this from within another process..
+# so for now, fixed on bash
+#
+# actually there's no point in providing a script either
+#
+# pure also doesn't make much sense; most of our shell options use
+# `print-dev-env` which doesn't actually run anything or construct an
+# environment so we can't really even "run" a script let alone run a script in
+# a "pure" shell
+
 runs:
   using: "composite"
   steps:
