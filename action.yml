@@ -73,7 +73,7 @@ runs:
     - id: check-for-nix
       shell: bash
       run: |
-        if ! command nix; then
+        if ! command -v nix; then
           echo "nix-missing=true" >> $GITHUB_OUTPUT
 
           echo '::warning::`nix` not found; installing using `cachix/install-nix-action@v18`'
