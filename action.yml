@@ -1,0 +1,46 @@
+name: "use-nix-shell-action"
+branding:
+  icon: 'cloud-snow'
+  color: 'blue'
+description: "Apply a nix shell to a GitHub Actions job."
+inputs:
+  # Shell specification options; set 0 or 1 of these:
+  packages:
+    description: 'Comma-separated list of packages to install in the shell.'
+    required: false
+  flakes:
+    description: >
+      Comma-separated list of flake references to install in the shell.
+    required: false
+  devShell:
+    description: 'Flake path to a devShell.'
+    required: false
+    # These is the default but we can't mark it as such here because we don't
+    # have an easy way to differentiate between defaults and user-provided
+    # inputs from within composite (bash) github action implementations.
+    #
+    # We want to be able to tell the difference between the user actually
+    # specifying multiple inputs and the user specifying another shell input +
+    # the default for `devShell` coming through.
+  file:
+    description: 'Path to a file (i.e. shell.nix) describing the shell.'
+    required: false
+
+# outputs:
+#   env:
+#         value: ${{ steps.random-number-generator.outputs.random-number }}
+# TODO ^
+
+# warn if nix is not installed; go install it
+
+runs:
+  using: "composite"
+  steps:
+
+    - run: ${{ github.action_path }}/action.bash ${{ github.env }} ${{ github.path }}
+      shell: bash
+      env:
+        INPUT_PACKAGES: ${{ inputs.packages }}
+        INPUT_FLAKES: ${{ inputs.flakes }}
+        INPUT_DEVSHELL: ${{ inputs.devShell }}
+        INPUT_FILE: ${{ inputs.file }}
