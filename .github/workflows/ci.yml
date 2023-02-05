@@ -36,7 +36,8 @@ jobs:
 
       # `devShell` and `file` sources also exported the test case vars; check
       # that the vars roundtripped correctly in these shells:
-      - if: ${{ matrix.shellSource == 'devShell' }} || ${{ matrix.shellSource == 'file' }}
+      - name: 'Check Env Var Roundtrip Testcases'
+        if: ${{ matrix.shellSource == 'devShell' }} || ${{ matrix.shellSource == 'file' }}
         run: |
           source util.bash
           check_testcases
