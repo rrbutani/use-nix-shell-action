@@ -1,0 +1,18 @@
+name: "Lint"
+on: [push]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v18
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      # There doesn't appear to be an action that converts shellcheck lints to
+      # GitHub Actions annotations so we just invoke shellcheck manually:
+      - uses: ./
+        with:
+          exportEnv: false
+          packages: shellcheck
+          script: |
+            shellcheck **/*.bash

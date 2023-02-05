@@ -76,4 +76,3 @@ These options describe the shell that `use-nix-shell-action` should use.
 
 ## FAQ
 
-TODO: shellcheck in CI

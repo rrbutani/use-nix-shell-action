@@ -119,7 +119,7 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
     # early.
     #
     # shellcheck source=vendored/nix-direnv.envrc
-    source "${NIX_DIRENV_PATH}" # TODO: in lint specify loc
+    source "${NIX_DIRENV_PATH}"
 
     declare -a cmd_args=()
     case ${INPUT_SOURCE/INPUT_/} in
