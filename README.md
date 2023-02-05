@@ -9,7 +9,9 @@ This allows you to use `nix` to provide binaries that other GitHub Actions requi
 ## Example
 
 > **Note**
-> This action does *not* handle installing `nix` for you; see [`cachix/install-nix-action`](https://github.com/cachix/install-nix-action).
+> If `nix` isn't found, this action *will* handle installing `nix` for you using [`cachix/install-nix-action`](https://github.com/cachix/install-nix-action).
+>
+> However it's recommended that you run this action yourself.
 
 ```yaml
 name: "Test"

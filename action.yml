@@ -36,6 +36,34 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - id: check-for-nix
+      shell: bash
+      run: |
+        if ! command nix; then
+          echo "nix-missing=true" >> $GITHUB_OUTPUT
+
+          echo '::warning::`nix` not found; installing using `cachix/install-nix-action@v18`'
+          {
+            echo '## ℹ️ **Note**'
+            echo '`nix` was not found so it was installed using [`cachix/install-nix-action`](https://github.com/cachix/install-nix-action)'
+            echo ''
+            echo 'Consider adding this action to your workflow directly so that you have more control over the nix version/channels/configuration options:'
+            echo '```yaml'
+            echo ' - uses: cachix/install-nix-action@v18'
+            echo '   with:'
+            echo '     nix_path: nixpkgs=channel:nixos-unstable'
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+
+        else
+          echo "nix-missing=false" >> $GITHUB_OUTPUT
+          echo '::debug::using already present `nix`..'
+        fi
+    - if: ${{ steps.check-for-nix.outputs.nix-missing == 'true' }}
+      uses: cachix/install-nix-action@v18
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
     # Point to the vendored `nix-direnv`'s script.
     #
     # We would grab this from `cache.nixos.org` (by store path, for
