@@ -79,8 +79,9 @@ readonly INPUT_INTERPRETER=${INPUT_INTERPRETER-bash}
 readonly INPUT_CLEAR_ENV_FOR_SCRIPT=${INPUT_CLEAR_ENV_FOR_SCRIPT-false}
 checkBoolOption CLEAR_ENV_FOR_SCRIPT clearEnvForScript
 
+
 # Warn if no script provided + `exportEnv == false`:
-if [[ $INPUT_EXPORT_ENV == false ]] && [[ $INPUT_SCRIPT_SET == false ]]; then
+if ! [[ "$INPUT_EXPORT_ENV" == true || "$INPUT_SCRIPT_SET" == true ]]; then
     # shellcheck disable=SC2016
     warn '`exportEnv` is set to false and no script is provided; this action will have no side-effects'
 fi
