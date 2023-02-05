@@ -36,6 +36,25 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Point to the vendored `nix-direnv`'s script.
+    #
+    # We would grab this from `cache.nixos.org` (by store path, for
+    # reproducibility) but doing so presents several challenges:
+    #   - `nix-direnv` depends on `nix`, etc so it has a large-ish closure size
+    #     even though we only really want one function from it
+    #   - the derivations technically are system specific (since some of the
+    #     deps are) so we'd want to maintain a matrix of store paths here for
+    #     the different runner platforms ((linux, macos) x (arch)) so that we
+    #     pick the store path that will result in the fewest extra things being
+    #     downloaded to the store (it technically doesn't matter if we pull the
+    #     "wrong" `nix-direnv` for a platform since we're not actually executing
+    #     it; it's just annoying because we'd be pulling in a bunch of binaries
+    #     and deps too)
+    #
+    # So, to keep things fast and simple we just vendored the `nix-direnv`
+    # envrc script.
+    - run: echo "NIX_DIRENV_PATH='${{ github.action_path }}/vendored/nix-direnv.envrc'" >> $GITHUB_ENV
+      shell: bash
 
     - run: ${{ github.action_path }}/action.bash ${{ github.env }} ${{ github.path }}
       shell: bash
