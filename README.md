@@ -75,12 +75,12 @@ These options describe the shell that `use-nix-shell-action` should use.
 ### Export Options
 
   - `exportEnv`: Boolean specifying whether `use-nix-shell-action` should export the shell given to your environment.
-    + defaults to <kbd>`true`</kbd>
+    + defaults to <kbd>true</kbd>
   - `preserveDefaultPath`: Boolean controlling whether the shell's environment *overrides* `$PATH` in the job (`false`) or appends to it (`true`).
     > **Warning**
     > Be careful with this option; if your shell doesn't include `bash`, `node`, `docker`, etc. those tools will not be on the `PATH` after this step; this can break other actions.
     + note: things added to `$GITHUB_PATH` (i.e. by other actions) will be preserved regardless
-    + defaults to <kbd>`true`</kbd>
+    + defaults to <kbd>true</kbd>
 
 ### Script Options
 
@@ -91,10 +91,10 @@ These options describe the shell that `use-nix-shell-action` should use.
       * if you wish to have your script affect the environment you'll need to update `$GITHUB_ENV` yourself
   - `interpreter`: The interpreter under which to run `script`.
     + this should be present in your shell's `$PATH`
-    + defaults to <kbd>`bash`</kbd>
+    + defaults to <kbd>bash</kbd>
   - `clearEnvForScript`: Boolean specifying whether to preserve existing env vars when running the provided script.
     + note: this does not influence the environment that's exported and cannot be used to provide a "pure" shell for future steps in your action
-    + defaults to <kbd>`true`</kbd>
+    + defaults to <kbd>true</kbd>
 
 ### Other options
 
