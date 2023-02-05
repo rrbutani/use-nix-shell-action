@@ -96,6 +96,35 @@ function nixCmd() {
 
 ###############################################################################
 
+################################# Export Env ##################################
+if [[ $INPUT_EXPORT_ENV == true ]]; then
+    echo "::group::Exporting Env"
+
+    # Get nix-direnv if not already provided:
+    if ! [ -e "${NIX_DIRENV_PATH:=""}" ]; then
+        debug "specified nix-direnv path (${NIX_DIRENV_PATH}) isn't present; grabbing from <nixpkgs>..."
+        NIX_DIRENV_PATH="$(
+            nixCmd build \
+                --expr "(import <nixpkgs> {}).nix-direnv" \
+                --impure --no-link \
+                --print-out-paths \
+                --builders '' --max-jobs 0
+        )/share/nix-direnv/direnvrc"
+
+        debug "using: ${NIX_DIRENV_PATH} for direnv"
+    fi
+    readonly NIX_DIRENV_PATH
+
+    # We only actually need this in the subshell; we eval here to catch errors
+    # early.
+    #
+    # shellcheck source=vendored/nix-direnv.envrc
+    source "${NIX_DIRENV_PATH}" # TODO: in lint specify loc
+
+
+    echo "::endgroup::"
+fi
+###############################################################################
 # in section
 # TODO: print what's in the shell in markdown
 
