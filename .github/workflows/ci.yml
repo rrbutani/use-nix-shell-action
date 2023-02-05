@@ -46,3 +46,4 @@ jobs:
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
 
+# TODO: run in shell with `clearEnvForScript` and not; check that outside stuff is available/is not available

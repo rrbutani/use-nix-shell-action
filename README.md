@@ -36,6 +36,20 @@ jobs:
         run: hello
       - name: Print env var
         run: echo $SOME_ENV_VAR
+
+      # Alternatively you can also run a script directly in the shell; choosing
+      # whether to preserve the environment outside the shell or not:
+      - uses: rrbutani/use-nix-shell-action@master
+        with:
+          devShell: .#
+          exportEnv: false
+          interpreter: python3
+          clearEnvForScript: true # `SOME_ENV_VAR` will not be visible; nor will
+                                  # `hello` be on `$PATH`
+          script: |
+            import os
+            print(os.sys.version)
+            print(os.environ['PATH'])
 ```
 
 ## Options (`with: ...`)
@@ -70,6 +84,15 @@ These options describe the shell that `use-nix-shell-action` should use.
 
 `use-nix-shell-action` can also, _optionally_, run a script of your choosing under your nix shell. This is the functionality provided by [`workflow/nix-shell-action`](https://github.com/workflow/nix-shell-action) but with some small mechanical differences; this action provides ways to run scripts under flake dev shells, for example.
 
+  - `script`: A script to run under the [nix shell specified](#source).
+    + note: this runs _after_ the environment is exported
+      * if you wish to have your script affect the environment you'll need to update `$GITHUB_ENV` yourself
+  - `interpreter`: The interpreter under which to run `script`.
+    + this should be present in your shell's `$PATH`
+    + defaults to <kbd>`bash`</kbd>
+  - `clearEnvForScript`: Boolean specifying whether to preserve existing env vars when running the provided script.
+    + note: this does not influence the environment that's exported and cannot be used to provide a "pure" shell for future steps in your action
+    + defaults to <kbd>`true`</kbd>
 
 ### Other options
 
@@ -95,3 +118,19 @@ Essentially just constructs a nix shell, [one way](https://nixos.org/manual/nix/
 
 We reuse [this logic from `nix-direnv`](https://github.com/nix-community/nix-direnv/blob/75c74a090bf37f34cd92eeab7f22f17dc0fcd48f/direnvrc#L83-L126).
 
+#### When should I use `script` instead of just exporting the env and running the script in a separate step?
+
+i.e. this:
+```yaml
+- uses: rrbutani/use-nix-shell-action@master
+  with:
+    script: ./foo.sh
+```
+
+verus this:
+```yaml
+- uses: rrbutani/use-nix-shell-action@master
+- run: ./foo.sh
+```
+
+The key difference here is "purity" (i.e. of the environment that `foo.sh` is run in). The former is run in the GitHub Actions environment (with the nix shell's environment layered on) while the latter is run with `nix develop --ignore-environment` (unless `clearEnvForScript` is set to `false`).
