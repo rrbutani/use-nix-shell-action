@@ -25,6 +25,8 @@ jobs:
           devShell: ./test
 
           preserveDefaultPath: false
+          extraNixOptions: |
+            --option access-tokens 'github.com=${{ secrets.GITHUB_TOKEN }}'
 
       # Test that the PATH has been cleared now:
       - run: |
@@ -37,10 +39,9 @@ jobs:
       # `devShell` and `file` sources also exported the test case vars; check
       # that the vars roundtripped correctly in these shells:
       - name: 'Check Env Var Roundtrip Testcases'
-        if: ${{ matrix.shellSource == 'devShell' }} || ${{ matrix.shellSource == 'file' }}
+        if: ${{ (matrix.shellSource == 'devShell') || (matrix.shellSource == 'file') }}
         run: |
-          source util.bash
-          check_testcases
+          bash -c "source util.bash; check_testcases"
 
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
