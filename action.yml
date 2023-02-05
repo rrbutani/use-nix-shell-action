@@ -4,6 +4,20 @@ branding:
   color: 'blue'
 description: "Apply a nix shell to a GitHub Actions job."
 inputs:
+  exportEnv:
+    description: >
+      Boolean indicating whether to export the specified shell's environment
+      into your GitHub Actions job's environment.
+    required: false
+    default: true
+  preserveDefaultPath:
+    description: >
+      Boolean controlling whether the shell's environment *overrides* `$PATH` in
+      the job (`false`) or appends to it (`true`). Note that things added to
+      `$GITHUB_PATH` (i.e. by other actions) will be preserved regardless.
+    required: false
+    default: true
+
   # Shell specification options; set 0 or 1 of these:
   packages:
     description: 'Comma-separated list of packages to install in the shell.'
@@ -25,6 +39,12 @@ inputs:
   file:
     description: 'Path to a file (i.e. shell.nix) describing the shell.'
     required: false
+
+
+  extraNixOptions:
+    description: 'Extra options to pass to the nix invocation used to construct the shell.'
+    required: false
+    default: ""
 
 # outputs:
 #   env:
@@ -87,7 +107,12 @@ runs:
     - run: ${{ github.action_path }}/action.bash ${{ github.env }} ${{ github.path }}
       shell: bash
       env:
+        INPUT_EXPORT_ENV: ${{ inputs.exportEnv }}
+        INPUT_PRESERVE_DEFAULT_PATH: ${{ inputs.preserveDefaultPath }}
+
         INPUT_PACKAGES: ${{ inputs.packages }}
         INPUT_FLAKES: ${{ inputs.flakes }}
         INPUT_DEVSHELL: ${{ inputs.devShell }}
         INPUT_FILE: ${{ inputs.file }}
+
+        INPUT_EXTRA_NIX_OPTIONS: ${{ inputs.extraNixOptions }}
