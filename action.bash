@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+source "$(dirname "$0")/util.bash"
+
 # Contexts: https://docs.github.com/en/actions/learn-github-actions/contexts
 # Commands: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions
 
@@ -9,6 +11,20 @@ readonly GITHUB_ENV_FILE="${1-"nix-shell.env"}"
 readonly GITHUB_PATH_FILE="${2-"nix-shell.path"}"
 
 #################################   Inputs   ##################################
+
+# $1: opt var; $2: input name
+checkBoolOption() {
+    local v="INPUT_${1}"
+    if ! [[ "${!v}" == "true" || "${!v}" == "false" ]]; then
+        ec=2 errorAndExit "Input '$2' must be a boolean: 'true' or 'false'; got: '${!v}'"
+    fi
+}
+
+readonly INPUT_EXPORT_ENV=${INPUT_EXPORT_ENV-true}
+checkBoolOption EXPORT_ENV exportEnv
+
+readonly INPUT_PRESERVE_DEFAULT_PATH=${INPUT_PRESERVE_DEFAULT_PATH-true}
+checkBoolOption PRESERVE_DEFAULT_PATH preserveDefaultPath
 
 readonly INPUT_PACKAGES_SET=${INPUT_PACKAGES:+true}
 readonly INPUT_FLAKES_SET=${INPUT_FLAKES:+true}
@@ -57,6 +73,9 @@ case $num_input_sources_set in
 esac
 readonly INPUT_SOURCE
 debug "grabbing nix shell from: '${INPUT_SOURCE/INPUT_/}' with: '${!INPUT_SOURCE}'"
+
+# shellcheck disable=SC2206
+declare -a INPUT_EXTRA_NIX_OPTIONS=(${INPUT_EXTRA_NIX_OPTIONS-})
 
 ###############################################################################
 
