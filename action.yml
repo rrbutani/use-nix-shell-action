@@ -42,7 +42,8 @@ inputs:
 
 
   extraNixOptions:
-    description: 'Extra options to pass to the nix invocation used to construct the shell.'
+    description: >
+      Extra options to pass to the nix invocation used to construct the shell.
     required: false
     default: ""
 
