@@ -85,8 +85,9 @@ declare -a INPUT_EXTRA_NIX_OPTIONS=(${INPUT_EXTRA_NIX_OPTIONS-})
 # annotations...
 
 function echoAndRun() {
-    echo "running: \`${*@Q}\`" >&2
+    echo "::group::running: \`${*@Q}\`" >&2
     command "${@}"
+    echo "::endgroup::" >&2
 }
 function nixCmd() {
     echoAndRun nix \
@@ -98,11 +99,9 @@ function nixCmd() {
 
 ################################# Export Env ##################################
 if [[ $INPUT_EXPORT_ENV == true ]]; then
-    echo "::group::Exporting Env"
-
     # Get nix-direnv if not already provided:
     if ! [ -e "${NIX_DIRENV_PATH:=""}" ]; then
-        debug "specified nix-direnv path (${NIX_DIRENV_PATH}) isn't present; grabbing from <nixpkgs>..."
+        warn "specified nix-direnv path (${NIX_DIRENV_PATH}) isn't present; grabbing from <nixpkgs>..."
         NIX_DIRENV_PATH="$(
             nixCmd build \
                 --expr "(import <nixpkgs> {}).nix-direnv" \
@@ -166,6 +165,8 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 
     profileRaw="$(mktemp --suffix=-profile.rc)"
     nixCmd "${cmd_args[@]}" > "$profileRaw"
+
+    echo "::group::Exporting Env"
 
     # Run in a subshell with it's environment cleared so we can tell what
     # actually came from the nix shell:
