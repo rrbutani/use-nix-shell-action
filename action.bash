@@ -177,6 +177,7 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 		# Within this subshell we can't assume anything about PATH so we can
 		# only use bash built-ins and things we explicitly define.
 		rm() { "$(which rm)" "\$@"; } # nix-direnv wants this
+		tac() { "$(which tac)" "\$@"; } # we want this below to reverse \$PATH
 
 		source "${NIX_DIRENV_PATH}"
 		NDEBUG="${NDEBUG-""}" source "$(dirname "$0")/util.bash"
@@ -210,7 +211,7 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 		fi
 
 		declare -a _path_segs=()
-		echo "\${PATH//:/\$'\n'}" | while read -r path_seg; do
+		echo "\${PATH//:/\$'\n'}" | tac | while read -r path_seg; do
 		    _path_segs+=("\$path_seg")
 		    echo "\$path_seg" >> "${GITHUB_PATH_FILE}"
 		done
