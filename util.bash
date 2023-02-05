@@ -44,3 +44,41 @@ function export_var() {
         echo "__EOV__"
     } >> "$GITHUB_ENV"
 }
+
+# $1: filter
+function export_vars() {
+    compgen -v | grep --color=never "${1-""}" | while read -r name; do
+        export_var "${name}"
+    done
+}
+
+function export_testcase_vars() {
+    export_vars "^TESTCASE_"
+}
+
+
+## Test Utils ##
+
+function get_testcase_names() {
+    compgen -v | grep --color=never "^TESTCASE_" | sort
+}
+
+function print_var() {
+    echo "[${1}]"
+    echo "ENC: '$(echo "${!1}" | base64 -w0)'"
+    echo "${!1}"
+    printf '=%.0s' {1..100}
+}
+
+function all_testcases() {
+    get_testcase_names | while read -r name; do
+        print_var "$name"
+    done
+}
+
+# Call in an environment where all the testcase vars have already been restored.
+function check_testcases() {
+    diff -y \
+        <(all_testcases) \
+        <(env -i --chdir="$(dirname "${BASH_SOURCE[0]}")" PATH="$PATH" bash -c "source test/vars.bash; source util.bash; all_testcases")
+}
