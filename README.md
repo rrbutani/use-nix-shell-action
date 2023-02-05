@@ -38,7 +38,7 @@ jobs:
 
 ## Options (`with: ...`)
 
-##### Source
+### Source
 
 These options describe the shell that `use-nix-shell-action` should use.
 
@@ -55,6 +55,21 @@ These options describe the shell that `use-nix-shell-action` should use.
     + i.e. `.#` or `github:NixOS/nix` or `some/path#someShell` or `.#devShells.x86_64-linux.someSpecialShell`
   - `file`: Path to a nix file producing a shell.
     + i.e. `shell.nix`
+
+### Export Options
+
+  - `exportEnv`: Boolean specifying whether `use-nix-shell-action` should export the shell given to your environment.
+    + defaults to <kbd>`true`</kbd>
+  - `preserveDefaultPath`: Boolean controlling whether the shell's environment *overrides* `$PATH` in the job (`false`) or appends to it (`true`).
+    + note: things added to `$GITHUB_PATH` (i.e. by other actions) will be preserved regardless
+    + defaults to <kbd>`true`</kbd>
+
+
+### Other options
+
+  - `extraNixOptions`: Use to specify extra flags to be passed to the command producing the shell.
+    + for example `--impure` or extra [`--option`s](https://nixos.org/manual/nix/stable/command-ref/conf-file.html?highlight=nix.conf)
+    + see the options for [`nix print-dev-env`](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-print-dev-env.html#options) and [`nix shell`](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-shell.html)
 
 <!-- TODO: pass flake args (--experimental) -->
 <!-- TODO: warn about needing bash (?) -->
