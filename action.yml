@@ -115,12 +115,11 @@ runs:
     #
     # So, to keep things fast and simple we just vendored the `nix-direnv`
     # envrc script.
-    - run: echo "NIX_DIRENV_PATH='${{ github.action_path }}/vendored/nix-direnv.envrc'" >> $GITHUB_ENV
-      shell: bash
-
     - run: ${{ github.action_path }}/action.bash ${{ github.env }} ${{ github.path }}
       shell: bash
       env:
+        NIX_DIRENV_PATH: ${{ github.action_path }}/vendored/nix-direnv.envrc
+
         INPUT_EXPORT_ENV: ${{ inputs.exportEnv }}
         INPUT_PRESERVE_DEFAULT_PATH: ${{ inputs.preserveDefaultPath }}
 

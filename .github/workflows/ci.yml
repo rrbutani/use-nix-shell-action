@@ -16,22 +16,15 @@ jobs:
       - run: echo $PATH && rustc --version
 
       # Map to the right shell source:
-      - uses: ./
-        if: ${{ matrix.shellSource == "packages" }}
-        with.packages: hello
-        with.preserveDefaultPath: false
-      - uses: ./
-        if: ${{ matrix.shellSource == "flakes" }}
-        with.flakes: nixpkgs#hello
-        with.preserveDefaultPath: false
-      - uses: ./
-        if: ${{ matrix.shellSource == "file" }}
-        with.file: test/shell.nix
-        with.preserveDefaultPath: false
-      - uses: ./
-        if: ${{ matrix.shellSource == "devShell" }}
-        with.devShell: test
-        with.preserveDefaultPath: false
+      - uses: ./.github/workflows/matrix-expansion-helper
+        with:
+          source: ${{ matrix.shellSource }}
+          packages: hello
+          flakes: nixpkgs#hello
+          file: test/shell.nix
+          devShell: ./test
+
+          preserveDefaultPath: false
 
       # Test that the PATH has been cleared now:
       - run: |
@@ -43,7 +36,7 @@ jobs:
 
       # `devShell` and `file` sources also exported the test case vars; check
       # that the vars roundtripped correctly in these shells:
-      - if: ${{ matrix.shellSource == "devShell" }} || ${{ matrix.shellSource == "file" }}
+      - if: ${{ matrix.shellSource == 'devShell' }} || ${{ matrix.shellSource == 'file' }}
         run: |
           source util.bash
           check_testcases

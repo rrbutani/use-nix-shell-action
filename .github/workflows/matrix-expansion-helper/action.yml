@@ -1,0 +1,55 @@
+name: "Expand Shell Source Configuration Matrix"
+inputs:
+  source:
+    type: string
+    required: true
+    description: "packages, flakes, file, or devShell"
+
+  packages:
+    required: true
+  flakes:
+    required: true
+  file:
+    required: true
+  devShell:
+    required: true
+
+  exportEnv:
+    required: false
+    default: true
+  preserveDefaultPath:
+    required: false
+    default: true
+
+  script:
+    required: false
+    default: ""
+  interpreter:
+    required: false
+    default: "bash"
+  clearEnvForScript:
+    required: false
+    default: true
+
+  extraNixOptions:
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.
+      with:
+        packages: ${{ (inputs.source == 'packages') && inputs.packages || '' }}
+        flakes: ${{ (inputs.source == 'flakes') && inputs.flakes || '' }}
+        file: ${{ (inputs.source == 'file') && inputs.file || '' }}
+        devShell: ${{ (inputs.source == 'devShell') && inputs.devShell || '' }}
+
+        exportEnv: ${{ inputs.exportEnv }}
+        preserveDefaultPath: ${{ inputs.preserveDefaultPath }}
+
+        script: ${{ inputs.script }}
+        interpreter: ${{ inputs.interpreter }}
+        clearEnvForScript: ${{ inputs.clearEnvForScript }}
+
+        extraNixOptions: ${{ inputs.extraNixOptions }}
+
