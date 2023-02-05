@@ -46,7 +46,3 @@ jobs:
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
 
-# Lint
-# Test: env-vars on { flakes, devShell, packages, file } + run script
-#  + test with `preserveDefaultPath` that checks that, like, rustc isn't on the path anymore
-# matrix: { macOS, ubuntu }

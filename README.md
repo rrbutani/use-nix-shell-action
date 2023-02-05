@@ -68,11 +68,7 @@ These options describe the shell that `use-nix-shell-action` should use.
 
 ### Script Options
 
-  <!-- + TODO: I don't think this will actually work?
-  + TODO: what does GITHUB_ENV actually let us do?
-  + TODO: lower to `-i` if using `nix develop`
-  + If you're looking for actual purity probably use `script` -->
-
+`use-nix-shell-action` can also, _optionally_, run a script of your choosing under your nix shell. This is the functionality provided by [`workflow/nix-shell-action`](https://github.com/workflow/nix-shell-action) but with some small mechanical differences; this action provides ways to run scripts under flake dev shells, for example.
 
 
 ### Other options
@@ -80,9 +76,6 @@ These options describe the shell that `use-nix-shell-action` should use.
   - `extraNixOptions`: Escape hatch that you can use to specify extra flags to be passed to the command producing the shell.
     + for example `--impure` or extra [`--option`s](https://nixos.org/manual/nix/stable/command-ref/conf-file.html?highlight=nix.conf)
     + see the options for [`nix print-dev-env`](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-print-dev-env.html#options) and [`nix shell`](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-shell.html)
-
-<!-- TODO: pass flake args (--experimental) -->
-<!-- TODO: warn about needing bash (?) -->
 
 ## FAQ
 

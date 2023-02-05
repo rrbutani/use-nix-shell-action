@@ -222,20 +222,6 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
     echo "::endgroup::"
 fi
 ###############################################################################
-# in section
-# TODO: print what's in the shell in markdown
 
-# in section
-# TODO: print exported env in markdown
-
-# notice for each?
-
-# echo "::group::TODO"
-
-# echo "$@"
-# env
-# echo "::endgroup::"
-
-# TODO: don't set `PATH` in `GITHUB_ENV`; append instead?
 
 # TODO(feature): deny list/allow list for env vars..
