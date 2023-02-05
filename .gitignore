@@ -1,0 +1,4 @@
+nix-shell.env
+nix-shell.path
+result
+.direnv

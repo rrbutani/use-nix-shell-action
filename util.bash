@@ -56,7 +56,6 @@ function export_testcase_vars() {
     export_vars "^TESTCASE_"
 }
 
-
 ## Test Utils ##
 
 function get_testcase_names() {
