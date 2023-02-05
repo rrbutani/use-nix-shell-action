@@ -74,6 +74,17 @@ esac
 readonly INPUT_SOURCE
 debug "grabbing nix shell from: '${INPUT_SOURCE/INPUT_/}' with: '${!INPUT_SOURCE}'"
 
+readonly INPUT_SCRIPT_SET=${INPUT_SCRIPT:+true}
+readonly INPUT_INTERPRETER=${INPUT_INTERPRETER-bash}
+readonly INPUT_CLEAR_ENV_FOR_SCRIPT=${INPUT_CLEAR_ENV_FOR_SCRIPT-false}
+checkBoolOption CLEAR_ENV_FOR_SCRIPT clearEnvForScript
+
+# Warn if no script provided + `exportEnv == false`:
+if [[ $INPUT_EXPORT_ENV == false ]] && [[ $INPUT_SCRIPT_SET == false ]]; then
+    # shellcheck disable=SC2016
+    warn '`exportEnv` is set to false and no script is provided; this action will have no side-effects'
+fi
+
 # shellcheck disable=SC2206
 declare -a INPUT_EXTRA_NIX_OPTIONS=(${INPUT_EXTRA_NIX_OPTIONS-})
 
@@ -223,5 +234,16 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 fi
 ###############################################################################
 
+################################# Run Script ##################################
+if [[ $INPUT_SCRIPT_SET == true ]]; then
+    case ${INPUT_SOURCE/INPUT_/} in
+        PACKAGES) ;; # `nix shell`
+        FLAKES) ;; # `nix shell`
+        DEVSHELL) ;; # `nix develop`
+        FILE) ;; # `nix develop --file`
+        *) error unreachable
+    esac
+fi
+###############################################################################
 
 # TODO(feature): deny list/allow list for env vars..
