@@ -16,7 +16,8 @@ jobs:
       - run: echo $PATH && rustc --version
 
       # Map to the right shell source:
-      - uses: ./.github/workflows/matrix-expansion-helper
+      - name: 'Load Shell Env'
+        uses: ./.github/workflows/matrix-expansion-helper
         with:
           source: ${{ matrix.shellSource }}
           packages: hello
@@ -26,7 +27,7 @@ jobs:
 
           preserveDefaultPath: false
           extraNixOptions: |
-            --option access-tokens 'github.com=${{ secrets.GITHUB_TOKEN }}'
+            --option access-tokens github.com=${{ secrets.GITHUB_TOKEN }}
 
       # Test that the PATH has been cleared now:
       - run: |
@@ -45,5 +46,69 @@ jobs:
 
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
+
+      # Restore `bash` and friends into the environment:
+      - run: |
+          { echo "/bin"; echo "/usr/bin"; } >> $GITHUB_PATH
+
+      - name: 'Run Script with Host Env'
+        uses: ./.github/workflows/matrix-expansion-helper
+        with:
+          source: ${{ matrix.shellSource }}
+          packages: bash, tiny
+          flakes: nixpkgs#bash, nixpkgs#tiny
+          file: test/shell2.nix
+          devShell: ./test#noHello
+
+          extraNixOptions: |
+            --option access-tokens github.com=${{ secrets.GITHUB_TOKEN }}
+          exportEnv: false
+          clearEnvForScript: false
+
+          script: |
+            hello # should still be available because we didn't clear the env
+            tiny --version
+
+      # check that we didn't add python to the github actions env:
+      - name: 'Did not update environment'
+        run: |
+          command -v tiny && exit 3 || :
+
+      - name: 'Run Script without Host Env'
+        uses: ./.github/workflows/matrix-expansion-helper
+        with:
+          source: ${{ matrix.shellSource }}
+          packages: bash
+          flakes: nixpkgs#bash
+          file: test/shell2.nix
+          devShell: ./test#noHello
+
+          extraNixOptions: |
+            --option access-tokens github.com=${{ secrets.GITHUB_TOKEN }}
+          exportEnv: false
+          clearEnvForScript: true
+
+          script: |
+            hello && exit 3 || : okay # shouldn't be there anymore
+
+      - name: 'Run Script with Other Interpreter'
+        uses: ./.github/workflows/matrix-expansion-helper
+        with:
+          source: ${{ matrix.shellSource }}
+          packages: python3
+          flakes: nixpkgs#python3
+          file: test/shell2.nix
+          devShell: ./test#noHello
+
+          extraNixOptions: |
+            --option access-tokens github.com=${{ secrets.GITHUB_TOKEN }}
+          exportEnv: false
+          clearEnvForScript: true
+
+          interpreter: python3
+          script: |
+            import os
+            print(os.sys.version)
+            print(os.environ['PATH'])
 
 # TODO: run in shell with `clearEnvForScript` and not; check that outside stuff is available/is not available
