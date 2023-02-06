@@ -10,9 +10,12 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       # There doesn't appear to be an action that converts shellcheck lints to
       # GitHub Actions annotations so we just invoke shellcheck manually:
-      - uses: ./
+      - name: shellcheck
+        uses: ./
         with:
           exportEnv: false
-          packages: shellcheck
+          packages: bash, shellcheck
           script: |
-            shellcheck **/*.bash
+            shopt -s globstar
+            set -x
+            shellcheck --color=always *.bash **/*.bash vendored/*

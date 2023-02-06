@@ -294,7 +294,4 @@ if [[ $INPUT_SCRIPT_SET == true ]]; then
 fi
 ###############################################################################
 
-# just to trigger a shellcheck lint to test CI:
-cat "$0" | cat > /dev/null # useless cat!
-
 # TODO(feature): deny list/allow list for env vars..
