@@ -124,14 +124,14 @@ We reuse [this logic from `nix-direnv`](https://github.com/nix-community/nix-dir
 
 i.e. this:
 ```yaml
-- uses: rrbutani/use-nix-shell-action@master
+- uses: rrbutani/use-nix-shell-action@main
   with:
     script: ./foo.sh
 ```
 
 verus this:
 ```yaml
-- uses: rrbutani/use-nix-shell-action@master
+- uses: rrbutani/use-nix-shell-action@main
 - run: ./foo.sh
 ```
 
