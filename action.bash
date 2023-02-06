@@ -139,6 +139,9 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 
             # we don't sanitize `INPUT_PACKAGES_LIST` so arbitrary nix
             # expressions can sneak in but I think this is okay?
+            #
+            # if it's not we can switch to using `nix shell` + `env` here too..
+            # (see what we do for `script` and INPUT_PACKAGES below)
             cmd_args=(
                 print-dev-env
                 --impure
@@ -237,13 +240,57 @@ fi
 
 ################################# Run Script ##################################
 if [[ $INPUT_SCRIPT_SET == true ]]; then
+    declare -a cmd_args=()
     case ${INPUT_SOURCE/INPUT_/} in
-        PACKAGES) ;; # `nix shell`
-        FLAKES) ;; # `nix shell`
-        DEVSHELL) ;; # `nix develop`
-        FILE) ;; # `nix develop --file`
+        PACKAGES) # `nix shell`
+            notice "nix shell (for running script) from packages: ${INPUT_PACKAGES_LIST[*]@Q}"
+            cmd_args=(
+                shell
+                --impure
+                --expr '(import <nixpkgs> {})' "${INPUT_PACKAGES_LIST[@]}"
+            )
+            ;;
+        FLAKES) # `nix shell`
+            notice "nix shell (for running script) from flakes: ${INPUT_FLAKES_LIST[*]@Q}"
+            cmd_args=(
+                shell
+                "${INPUT_FLAKES_LIST[@]}"
+            )
+            ;;
+        DEVSHELL) # `nix develop`
+            notice "nix shell (for running script) from devShell: ${INPUT_DEVSHELL}"
+            cmd_args=(
+                develop
+                "${INPUT_DEVSHELL}"
+            )
+            ;;
+        FILE) # `nix develop --file`
+            notice "nix shell (for running script) from file: ${INPUT_FILE}"
+            cmd_args=(
+                develop
+                --file "${INPUT_FILE}"
+            )
+            ;;
         *) error unreachable
     esac
+
+    # Write out the script:
+    scriptFile="$(mktemp --suffix=-.script)"
+    echo -n "$INPUT_SCRIPT" > "$scriptFile"
+    chmod +x "$scriptFile"
+
+    # Append the common args to the command:
+    if [[ "${INPUT_CLEAR_ENV_FOR_SCRIPT}" == "true" ]]; then
+        cmd_args+=(--ignore-environment)
+    fi
+    cmd_args+=(
+        "${INPUT_EXTRA_NIX_OPTIONS[@]}"
+        --command "${INPUT_INTERPRETER}" "${scriptFile}"
+    )
+
+    # Finally, run it:
+    notice "Running script with ${INPUT_INTERPRETER}"
+    nixCmd "${cmd_args[@]}"
 fi
 ###############################################################################
 
