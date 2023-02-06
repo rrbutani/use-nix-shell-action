@@ -27,7 +27,7 @@ jobs:
         run: env
       # To make the environment in your flake's devShell available to future
       # steps:
-      - uses: rrbutani/use-nix-shell-action@main
+      - uses: rrbutani/use-nix-shell-action@v1
         with:
           devShell: .#default # this is the default
       - name: Print env, after
@@ -39,7 +39,7 @@ jobs:
 
       # Alternatively you can also run a script directly in the shell; choosing
       # whether to preserve the environment outside the shell or not:
-      - uses: rrbutani/use-nix-shell-action@main
+      - uses: rrbutani/use-nix-shell-action@v1
         with:
           devShell: .#
           exportEnv: false
@@ -124,14 +124,14 @@ We reuse [this logic from `nix-direnv`](https://github.com/nix-community/nix-dir
 
 i.e. this:
 ```yaml
-- uses: rrbutani/use-nix-shell-action@main
+- uses: rrbutani/use-nix-shell-action@v1
   with:
     script: ./foo.sh
 ```
 
 verus this:
 ```yaml
-- uses: rrbutani/use-nix-shell-action@main
+- uses: rrbutani/use-nix-shell-action@v1
 - run: ./foo.sh
 ```
 
