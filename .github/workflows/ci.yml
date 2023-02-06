@@ -1,5 +1,9 @@
 name: "Test"
-on: [push]
+on:
+  push:
+  schedule:
+    - cron: '40 0 * * *' # run every night
+
 jobs:
   test:
     strategy:
