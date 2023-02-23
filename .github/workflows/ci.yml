@@ -51,9 +51,9 @@ jobs:
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
 
-      # Restore `bash` and friends into the environment:
+      # Note that `bash` is *not* on the path now..
       - run: |
-          { echo "/bin"; echo "/usr/bin"; } >> $GITHUB_PATH
+          ! command -v bash
 
       - name: 'Run Script with Host Env'
         uses: ./.github/workflows/matrix-expansion-helper
@@ -81,6 +81,14 @@ jobs:
           command -v tiny && exit 3 || :
 
           cat foo # check that the script actually ran
+
+      # Test that we can run with non-interactive bash on $PATH:
+      - name: 'Put non-interactive bash on $PATH'
+        uses: ./
+        with:
+          packages: bash
+      - run: |
+          ! bash -c "type compgen"
 
       - name: 'Run Script without Host Env'
         uses: ./.github/workflows/matrix-expansion-helper
