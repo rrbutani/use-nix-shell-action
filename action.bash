@@ -230,7 +230,10 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 		    _path_segs+=("\$path_seg")
 		    echo "\$path_seg" >> "${GITHUB_PATH_FILE}"
 		done
-		notice "added \${#_path_segs[@]} elements to PATH: \${_path_segs[*]@Q}"
+		notice \
+		    "added \${#_path_segs[@]} elements to PATH" \
+		    "(reverse order, last has highest precedence):" \
+		    "\${_path_segs[*]@Q}"
 
 		EOF
 
