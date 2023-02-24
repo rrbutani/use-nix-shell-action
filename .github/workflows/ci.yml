@@ -52,6 +52,10 @@ jobs:
           echo $PATH | grep "foo" || exit 3
 
       # Note that `bash` is *not* on the path now..
+      #
+      # (but only for the flakes route since that's the only route here that's
+      # not `mkShell` based and thus doesn't dump the stdenv's bash/coreutils on
+      # $PATH)
       - if: ${{ matrix.shellSource == 'flakes' }}
         run: |
           ! command -v bash
@@ -81,7 +85,7 @@ jobs:
         run: |
           command -v tiny && exit 3 || :
 
-          cat foo # check that the script actually ran
+          [[ -e foo ]] # check that the script actually ran
 
       # Test that we can run with non-interactive bash on $PATH:
       - name: 'Put non-interactive bash on $PATH'

@@ -88,7 +88,7 @@ runs:
       if: steps.try-bash.outcome == 'failure'
       shell: '/usr/bin/bash {0}'
       run: |
-        /usr/bin/test-not-bash -c "type compgen &>/dev/null" || exit 2
+        /usr/bin/bash -c "type compgen &>/dev/null" || exit 2
 
         echo '::notice::bash not on $PATH, using /usr/bin/bash...'
         echo "bash=/usr/bin/bash" >> $GITHUB_OUTPUT
@@ -115,6 +115,7 @@ runs:
       run: |
         BASH_PATH="${{ (steps.try-bash.outcome == 'success' && steps.try-bash.outputs.bash) || (steps.try-hardcoded-bash.outcome == 'success' && steps.try-hardcoded-bash.outputs.bash) || (steps.try-nix-shell-bash.outcome == 'success' && steps.try-nix-shell-bash.outputs.bash) || 'unreachable' }}"
         echo "bash=${BASH_PATH} --noprofile --norc -e -o pipefail {0}" >> $GITHUB_OUTPUT
+        echo "bash-binary-path=${BASH_PATH}" >> $GITHUB_OUTPUT
 
     - id: check-for-nix
       shell: ${{ steps.bash-path.outputs.bash }}
@@ -161,10 +162,11 @@ runs:
     #
     # So, to keep things fast and simple we just vendored the `nix-direnv`
     # envrc script.
-    - run: ${{ github.action_path }}/action.bash ${{ github.env }} ${{ github.path }}
+    - run: ${{steps.bash-path.outputs.bash-binary-path }} ${{ github.action_path }}/action.bash ${{ github.env }} ${{ github.path }}
       shell: ${{ steps.bash-path.outputs.bash }}
       env:
         NIX_DIRENV_PATH: ${{ github.action_path }}/vendored/nix-direnv.envrc
+        BASH_BINARY_PATH: ${{ steps.bash-path.outputs.bash-binary-path }}
 
         INPUT_EXPORT_ENV: ${{ inputs.exportEnv }}
         INPUT_PRESERVE_DEFAULT_PATH: ${{ inputs.preserveDefaultPath }}
