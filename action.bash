@@ -2,6 +2,18 @@
 
 set -euo pipefail
 
+if ! command -v rm &>/dev/null; then
+    echo "::notice::coreutils not found, grabbing from nixpkgs.."
+    # shellcheck disable=SC2016
+    coreutils_bin="$(nix-shell -p coreutils --run 'dirname $(command -v env)')"
+    export PATH="$PATH:${coreutils_bin}"
+    command -v rm &>/dev/null || {
+        echo "::error::failed to get coreutils" && exit 4;
+    }
+fi
+
+################################################################################
+
 source "$(dirname "$0")/util.bash"
 
 # Contexts: https://docs.github.com/en/actions/learn-github-actions/contexts
@@ -9,6 +21,9 @@ source "$(dirname "$0")/util.bash"
 
 readonly GITHUB_ENV_FILE="${1-"nix-shell.env"}"
 readonly GITHUB_PATH_FILE="${2-"nix-shell.path"}"
+
+readonly BASH_BINARY_PATH="${BASH_BINARY_PATH:-$(command -v bash || echo "$0")}"
+readonly ENV_BINARY_PATH="${ENV_BINARY_PATH:-$(command -v env || echo "/usr/bin/env")}"
 
 #################################   Inputs   ##################################
 
@@ -156,7 +171,7 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
                 "${INPUT_FLAKES_LIST[@]}"
                 --ignore-environment
                 "${INPUT_EXTRA_NIX_OPTIONS[@]}"
-                --command "$(which bash)" -c "$(which env)"
+                --command "${BASH_BINARY_PATH}" -c "${ENV_BINARY_PATH}"
             )
             ;;
         DEVSHELL) # `nix print-dev-env`
@@ -183,16 +198,16 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
 
     echo "::group::Exporting Env"
 
-    # Run in a subshell with it's environment cleared so we can tell what
+    # Run in a subshell with its environment cleared so we can tell what
     # actually came from the nix shell:
-    env -i "$(which bash)" <<-EOF
+    env -i "${BASH_BINARY_PATH}" <<-EOF
         set -eo pipefail
         shopt -s lastpipe
 
 		# Within this subshell we can't assume anything about PATH so we can
 		# only use bash built-ins and things we explicitly define.
-		rm() { "$(which rm)" "\$@"; } # nix-direnv wants this
-		tac() { "$(which tac)" "\$@"; } # we want this below to reverse \$PATH
+		rm() { "$(command -v rm || echo /usr/bin/rm)" "\$@"; } # nix-direnv wants this
+		tac() { "$(command -v tac || echo /usr/bin/tac)" "\$@"; } # we want this below to reverse \$PATH
 
 		source "${NIX_DIRENV_PATH}"
 		NDEBUG="${NDEBUG-""}" source "$(dirname "$0")/util.bash"

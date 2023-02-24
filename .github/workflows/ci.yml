@@ -51,9 +51,14 @@ jobs:
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
 
-      # Restore `bash` and friends into the environment:
-      - run: |
-          { echo "/bin"; echo "/usr/bin"; } >> $GITHUB_PATH
+      # Note that `bash` is *not* on the path now..
+      #
+      # (but only for the flakes route since that's the only route here that's
+      # not `mkShell` based and thus doesn't dump the stdenv's bash/coreutils on
+      # $PATH)
+      - if: ${{ matrix.shellSource == 'flakes' }}
+        run: |
+          ! command -v bash
 
       - name: 'Run Script with Host Env'
         uses: ./.github/workflows/matrix-expansion-helper
@@ -80,7 +85,15 @@ jobs:
         run: |
           command -v tiny && exit 3 || :
 
-          cat foo # check that the script actually ran
+          [[ -e foo ]] # check that the script actually ran
+
+      # Test that we can run with non-interactive bash on $PATH:
+      - name: 'Put non-interactive bash on $PATH'
+        uses: ./
+        with:
+          packages: bash
+      - run: |
+          ! bash -c "type compgen"
 
       - name: 'Run Script without Host Env'
         uses: ./.github/workflows/matrix-expansion-helper
