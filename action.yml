@@ -73,6 +73,9 @@ runs:
     # `type compgen` is used to check for bash-interactive which `action.bash`
     # needs (it uses `compgen`).
     #
+    # `[ ${BASH_VERSINFO[0]} -ge 4 ]` is used to check that bash has major
+    # version >= 4
+    #
     # Note: we need `continue-on-error` otherwise subsequent commands won't run
     # and we need `steps.... == 'failure'` gates on these commands so they don't
     # run when the previous test _didn't_ fail. Unfortunate but what to do.
@@ -82,6 +85,7 @@ runs:
       run: |
         command -v bash || exit 1
         type compgen &>/dev/null || exit 2
+        bash -c '[ ${BASH_VERSINFO[0]} -ge 4 ]' || exit 3
         echo "bash=$(command -v bash)" >> $GITHUB_OUTPUT
     - id: try-hardcoded-bash
       continue-on-error: true
@@ -89,6 +93,7 @@ runs:
       shell: '/bin/bash {0}'
       run: |
         /bin/bash -c "type compgen &>/dev/null" || exit 2
+        /bin/bash -c '[ ${BASH_VERSINFO[0]} -ge 4 ]' || exit 3
 
         echo '::notice::bash not on $PATH, using /bin/bash...'
         echo "bash=/bin/bash" >> $GITHUB_OUTPUT
