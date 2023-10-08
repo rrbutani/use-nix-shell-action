@@ -86,12 +86,12 @@ runs:
     - id: try-hardcoded-bash
       continue-on-error: true
       if: steps.try-bash.outcome == 'failure'
-      shell: '/usr/bin/bash {0}'
+      shell: '/bin/bash {0}'
       run: |
-        /usr/bin/bash -c "type compgen &>/dev/null" || exit 2
+        /bin/bash -c "type compgen &>/dev/null" || exit 2
 
-        echo '::notice::bash not on $PATH, using /usr/bin/bash...'
-        echo "bash=/usr/bin/bash" >> $GITHUB_OUTPUT
+        echo '::notice::bash not on $PATH, using /bin/bash...'
+        echo "bash=/bin/bash" >> $GITHUB_OUTPUT
     - id: try-nix-shell-bash
       continue-on-error: true
       if: steps.try-hardcoded-bash.outcome == 'failure'
