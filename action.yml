@@ -145,7 +145,7 @@ runs:
       if: steps.try-hardcoded-bash.outcome == 'failure'
       shell: 'nix-shell {0}'
       run: |
-        { nixpkgs ? import <nixpkgs> {} }: with nixpkgs; mkShell {
+        { nixpkgs ? import <nixpkgs> {} }: with nixpkgs; mkShellNoCC {
           shellHook = ''
             echo '::notice::using bash from `nixpkgs`...'
             echo "bash=${lib.getExe bashInteractive}" >> $GITHUB_OUTPUT
