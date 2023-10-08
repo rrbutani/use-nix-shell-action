@@ -10,7 +10,7 @@ jobs:
       matrix:
         shellSource: [packages, flakes, file, devShell]
         runs-on: [ubuntu-latest, macos-latest]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v3
 
