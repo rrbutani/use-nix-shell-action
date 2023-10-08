@@ -2,12 +2,12 @@
 
 set -euo pipefail
 
-if ! command -v rm &>/dev/null; then
+if ! { command -v rm && command -v tac; } &>/dev/null; then
     echo "::notice::coreutils not found, grabbing from nixpkgs.."
     # shellcheck disable=SC2016
     coreutils_bin="$(nix-shell -p coreutils --run 'dirname $(command -v env)')"
     export PATH="$PATH:${coreutils_bin}"
-    command -v rm &>/dev/null || {
+    { command -v rm && command -v tac; } &>/dev/null || {
         echo "::error::failed to get coreutils" && exit 4;
     }
 fi
