@@ -12,6 +12,16 @@ if ! { command -v rm && command -v tac; } &>/dev/null; then
     }
 fi
 
+if ! { command -v git; } &>/dev/null; then
+    echo "::notice::git not found, grabbing from nixpkgs.."
+    # shellcheck disable=SC2016
+    git_bin="$(nix-shell -p git --run 'dirname $(command -v git)')"
+    export PATH="$PATH:${git_bin}"
+    { command -v git; } &>/dev/null || {
+        echo "::error::failed to get git" && exit 4;
+    }
+fi
+
 ################################################################################
 
 source "$(dirname "$0")/util.bash"
