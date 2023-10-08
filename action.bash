@@ -2,13 +2,26 @@
 
 set -euo pipefail
 
-if ! command -v rm &>/dev/null; then
+if ! { command -v rm && command -v tac; } &>/dev/null; then
     echo "::notice::coreutils not found, grabbing from nixpkgs.."
     # shellcheck disable=SC2016
     coreutils_bin="$(nix-shell -p coreutils --run 'dirname $(command -v env)')"
     export PATH="$PATH:${coreutils_bin}"
-    command -v rm &>/dev/null || {
+    { command -v rm && command -v tac; } &>/dev/null || {
         echo "::error::failed to get coreutils" && exit 4;
+    }
+fi
+
+set -x
+if ! { command -v git; } &>/dev/null; then
+    echo "::notice::git not found, grabbing from nixpkgs.."
+    # shellcheck disable=SC2016
+    git_bin="$(nix-shell -p git --run 'dirname $(command -v git)')"
+    export PATH="$PATH:${git_bin}"
+    { command -v git; } &>/dev/null || {
+        echo "$git_bin"
+        command -v git || :
+        echo "::error::failed to get git" && exit 4;
     }
 fi
 
@@ -193,7 +206,7 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
         *) error unreachable
     esac
 
-    profileRaw="$(mktemp --suffix=-profile.rc)"
+    profileRaw="$(mktemp -t tmp.XXXXXXXXXX.profile.rc)"
     nixCmd "${cmd_args[@]}" > "$profileRaw"
 
     echo "::group::Exporting Env"
@@ -293,7 +306,7 @@ if [[ $INPUT_SCRIPT_SET == true ]]; then
     esac
 
     # Write out the script:
-    scriptFile="$(mktemp --suffix=-.script)"
+    scriptFile="$(mktemp -t tmp.XXXXXXXXXX.script)"
     echo -n "$INPUT_SCRIPT" > "$scriptFile"
     chmod +x "$scriptFile"
 

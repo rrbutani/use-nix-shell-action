@@ -10,7 +10,7 @@ jobs:
       matrix:
         shellSource: [packages, flakes, file, devShell]
         runs-on: [ubuntu-latest, macos-latest]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v3
 
@@ -46,7 +46,7 @@ jobs:
       - name: 'Check Env Var Roundtrip Testcases'
         if: ${{ (matrix.shellSource == 'devShell') || (matrix.shellSource == 'file') }}
         run: |
-          bash -c "source util.bash; check_testcases"
+          bash -euo pipefail -c "source util.bash; check_testcases"
 
           # Check that modifications in `shellHook` take effect:
           echo $PATH | grep "foo" || exit 3
