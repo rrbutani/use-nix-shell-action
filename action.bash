@@ -193,7 +193,7 @@ if [[ $INPUT_EXPORT_ENV == true ]]; then
         *) error unreachable
     esac
 
-    profileRaw="$(mktemp --suffix=-profile.rc)"
+    profileRaw="$(mktemp -t tmp.XXXXXXXXXX.profile.rc)"
     nixCmd "${cmd_args[@]}" > "$profileRaw"
 
     echo "::group::Exporting Env"
@@ -293,7 +293,7 @@ if [[ $INPUT_SCRIPT_SET == true ]]; then
     esac
 
     # Write out the script:
-    scriptFile="$(mktemp --suffix=-.script)"
+    scriptFile="$(mktemp -t tmp.XXXXXXXXXX.script)"
     echo -n "$INPUT_SCRIPT" > "$scriptFile"
     chmod +x "$scriptFile"
 
